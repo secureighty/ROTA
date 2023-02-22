@@ -88,7 +88,7 @@ class Board:
         return f"\n{self.edge_nodes[0]} {self.edge_nodes[1]} {self.edge_nodes[2]}\n" \
                f"{self.edge_nodes[7]} {self.center} {self.edge_nodes[3]}\n" \
                f"{self.edge_nodes[6]} {self.edge_nodes[5]} {self.edge_nodes[4]}\n"\
-               f"next:{self.turn}"
+               f"next:{self.turn}\n"
 
     def __hash__(self):
         result = tob3(self.turn)
