@@ -53,9 +53,10 @@ class Board:
         self.turn = "x"
         self.placements = 0
 
-    def flip(self):
-        result = self.edge_nodes.copy()
-        return result[::-1]
+    def flipped_board(self):
+        result = copy(self)
+        result.edge_nodes = result.edge_nodes[::-1]
+        return result
 
     def rotations(self):
         result = []
@@ -70,19 +71,15 @@ class Board:
 
     def normalize(self):
         configs = dict()
-        edge_nodes_mut = self.edge_nodes.copy()
+        configlist = []
+        configlist += self.rotations() + self.flipped_board().rotations()
+        print(configlist)
+        for i in configlist:
+            configs[hash(i)] = i
+        self.edge_nodes = configs[min(configs.keys())].edge_nodes
 
-        # check radial symmetry
-        for _ in range(len(edge_nodes_mut) + 1):
-            edge_nodes_mut = edge_nodes_mut[1:] + [edge_nodes_mut[0]]
-            configs[artob3([node.status for node in edge_nodes_mut])] = edge_nodes_mut.copy()
-        edge_nodes_mut = edge_nodes_mut[::-1]
-        configs[artob3([node.status for node in edge_nodes_mut])] = edge_nodes_mut.copy()
-        for _ in range(len(edge_nodes_mut) + 1):
-            edge_nodes_mut = edge_nodes_mut[1:] + [edge_nodes_mut[0]]
-            configs[artob3([node.status for node in edge_nodes_mut])] = edge_nodes_mut.copy()
-
-        self.edge_nodes = configs[min(configs.keys())]
+    def move_from_denormalized_board(self, board_array, startpos, endpos=None):
+        pass
 
     def __str__(self):
         return f"\n{self.edge_nodes[0]} {self.edge_nodes[1]} {self.edge_nodes[2]}\n" \
