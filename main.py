@@ -1,10 +1,11 @@
 from copy import deepcopy, copy
 
+
 class BoardNode:
-    def __init__(self):
+    def __init__(self, status="-"):
         self.linked_nodes = []
         self.opposite_node = None
-        self.status = "-"
+        self.status = status
 
     def link(self, node):
         self.linked_nodes += [node]
@@ -38,10 +39,32 @@ def artob3(arr):
     return int(result, 3)
 
 
+def board_dif(this, other):
+    result = 0
+    for i, j in zip(this.edge_nodes + [this.center], other.edge_nodes + [other.center]):
+        if i.status != j.status:
+            result += 1
+            if i.status == "o" or j.status == "o":
+                result += 10
+    return result
+
+
 class Board:
-    def __init__(self):
-        self.center = BoardNode()
-        self.edge_nodes = [BoardNode() for i in range(8)]
+    def __init__(self, init_array=None):
+        if init_array == None:
+            self.center = BoardNode()
+            self.edge_nodes = [BoardNode() for i in range(8)]
+        else:
+            init_array = list(init_array)
+            self.center = BoardNode(init_array[4])
+            self.edge_nodes = [BoardNode(init_array[0])]
+            self.edge_nodes.append(BoardNode(init_array[1]))
+            self.edge_nodes.append(BoardNode(init_array[2]))
+            self.edge_nodes.append(BoardNode(init_array[5]))
+            self.edge_nodes.append(BoardNode(init_array[8]))
+            self.edge_nodes.append(BoardNode(init_array[7]))
+            self.edge_nodes.append(BoardNode(init_array[6]))
+            self.edge_nodes.append(BoardNode(init_array[3]))
         for i in range(8):
             # link edge nodes
             self.edge_nodes[i].link(self.edge_nodes[(i + 1) % 8])
@@ -73,18 +96,67 @@ class Board:
         configs = dict()
         configlist = []
         configlist += self.rotations() + self.flipped_board().rotations()
-        print(configlist)
         for i in configlist:
             configs[hash(i)] = i
         self.edge_nodes = configs[min(configs.keys())].edge_nodes
 
-    def move_from_denormalized_board(self, board_array, startpos, endpos=None):
-        pass
+    def get_move_from_normalized_board(self, prev_denormalized_board):
+        def map_state_to_api(num):
+            match num:
+                case 0:
+                    return 1
+                case 1:
+                    return 2
+                case 2:
+                    return 3
+                case 3:
+                    return 6
+                case 4:
+                    return 9
+                case 5:
+                    return 8
+                case 6:
+                    return 7
+                case 7:
+                    return 4
+                case 8:
+                    return 5
+        configs = dict()
+        for i in self.rotations() + self.flipped_board().rotations():
+            configs[board_dif(i, prev_denormalized_board)] = i
+
+        if self.placements < 6:
+            denormalized_board = configs[1]
+        else:
+            try:
+                denormalized_board = configs[2]
+            except KeyError:
+                denormalized_board = configs[1]
+
+        start = None
+        end = None
+        for i in range(8):
+            prevstat = prev_denormalized_board.edge_nodes[i].status
+            thisstat = denormalized_board.edge_nodes[i].status
+            if prevstat != thisstat:
+                if prevstat == "-":
+                    end = map_state_to_api(i)
+                else:
+                    start = map_state_to_api(i)
+        prevstat = prev_denormalized_board.center.status
+        thisstat = denormalized_board.center.status
+        if prevstat != thisstat:
+            if prevstat == "-":
+                end = map_state_to_api(8)
+            else:
+                start = map_state_to_api(8)
+
+        return start, end
 
     def __str__(self):
         return f"\n{self.edge_nodes[0]} {self.edge_nodes[1]} {self.edge_nodes[2]}\n" \
                f"{self.edge_nodes[7]} {self.center} {self.edge_nodes[3]}\n" \
-               f"{self.edge_nodes[6]} {self.edge_nodes[5]} {self.edge_nodes[4]}\n"\
+               f"{self.edge_nodes[6]} {self.edge_nodes[5]} {self.edge_nodes[4]}\n" \
                f"next:{self.turn}\n"
 
     def __hash__(self):
@@ -106,9 +178,10 @@ class Board:
     def __repr__(self):
         return str(self)
 
-    def advance_turn(self):
+    def advance_turn(self, normalize=True):
         self.turn = ("o" if self.turn == "x" else "x")
-        self.normalize()
+        if normalize:
+            self.normalize()
 
     def is_won(self):
         for i in self.edge_nodes:
@@ -122,7 +195,7 @@ class Board:
                     return i.status
         return False
 
-    def move(self, start_index, end_index, player):
+    def move(self, start_index, end_index, player, normalize=True):
         start = self.nodes[start_index]
         end = self.nodes[end_index]
         if end not in start.linked_nodes and start not in end.linked_nodes and end is not self.center and start is not self.center:
@@ -137,17 +210,16 @@ class Board:
             raise Exception("not your piece")
         start.set_status("-")
         end.set_status(player)
-        self.advance_turn()
-        self.normalize()
+        self.advance_turn(normalize)
         return self
 
-    def get_neighbor_boards(self):
+    def get_neighbor_boards(self, normalize=True):
         neighbors = set()
         if self.placements < 6:
             for node in self.nodes:
                 if node.status == "-":
                     x = deepcopy(self)
-                    x.place(self.nodes.index(node), self.turn)
+                    x.place(self.nodes.index(node), self.turn, normalize)
                     neighbors.add(x)
 
         else:
@@ -156,14 +228,13 @@ class Board:
                     for blank_space in self.nodes:
                         if blank_space.status == "-":
                             if blank_space in piece.linked_nodes or blank_space is self.center or piece is self.center:
-
                                 x = deepcopy(self)
                                 x.move(self.nodes.index(piece), self.nodes.index(blank_space), self.turn)
                                 # x.neighbors = None
                                 neighbors.add(x)
         return neighbors
 
-    def place(self, node_num, player):
+    def place(self, node_num, player, normalize=True):
         if node_num == 8:
             node = self.center
         else:
@@ -173,5 +244,4 @@ class Board:
         else:
             raise Exception(f"spot {node_num} is taken by {self.nodes[node_num]}")
         self.placements += 1
-        self.advance_turn()
-
+        self.advance_turn(normalize)

@@ -60,7 +60,7 @@ def pruned_list(thiswhitelist, thisblacklist):
                 if j in thisblacklist:
                     new_blacklist.add(i)
                     new_whitelist.pop(i)
-                    print(f"{i} moved from whitelist to blacklist due to {j}")
+                    # print(f"{i} moved from whitelist to blacklist due to {j}")
                     break
         # if it's x's turn, ban connected board that could win. ban this board if there are no connected boards.
         else:  # if i.turn == "x"
@@ -69,12 +69,13 @@ def pruned_list(thiswhitelist, thisblacklist):
                 if j not in thisblacklist:
                     new_neighborlist.add(j)
                 else:
-                    print(f"{j} removed from {i} neighbors")
+                    pass
+                    # print(f"{j} removed from {i} neighbors")
             new_whitelist[i] = new_neighborlist
             if len(new_neighborlist) == 0:
                 new_whitelist.pop(i)
                 new_blacklist.add(i)
-                print(f"{i} was added to blacklist because all its neighbors are blacklisted.")
+                # print(f"{i} was added to blacklist because all its neighbors are blacklisted.")
 
     return new_whitelist, new_blacklist
 
@@ -94,64 +95,48 @@ while True:
     win_whitelist = new_whitelist
     win_blacklist = new_blacklist
 
-# demo time
-
-# play 100 games with each starting board
-wonctr = 0
-tiectr = 0
-for _ in range(100):
-    boards = []
-    boards.append(Board())
-    otherboard = Board()
-    otherboard.advance_turn()
-    boards.append(otherboard)
-    for i in boards:
-        board = i
-        for turncount in range(40):
-            if board.turn == "x":
-                if board in stall_whitelist:
-                    for potential_board in win_whitelist[board]:
-                        if potential_board in stall_whitelist:
-                            board = potential_board
-                else:
-                    print("trying to win")
-                    board = list(win_whitelist[board])[0]
-            else:
-                board = random.choice(list((board.get_neighbor_boards())))
-            print(board)
-            if board.is_won() == "o":
-                if board in win_blacklist:
-                    print("bad and I know it")
-                else:
-                    print("bad and im clueless")
-                print(wonctr)
-                print(tiectr)
-                raise Exception("fuck")
-            elif board.is_won() == "x":
-                wonctr += 1
-                print("---------------------------------win-----------------------------------")
-                break
-            elif turncount == 39:
-                tiectr += 1
-
-
-print(f"woncounter:{wonctr}, tiecounter:{tiectr}")
-
-
-
-# for i in keys:
-#     board = i
-#     print(f"-----starting board-----")
-#     print(board)
-#     for j in range(40):
-#         if board.turn == "x":
-#             board = list(whitelist[board])[0]
-#         else:
-#             board = random.choice(list(board.get_neighbor_boards()))
-#         print(board)
-#         print(f"turn {j+1}")
-#         if board.is_won():
-#             raise Exception("fuck")
+# # demo time
+#
+# # play 100 games with each starting board
+# wonctr = 0
+# tiectr = 0
+# for _ in range(100):
+#     boards = []
+#     boards.append(Board())
+#     otherboard = Board()
+#     otherboard.advance_turn()
+#     boards.append(otherboard)
+#     for i in boards:
+#         board = i
+#         for turncount in range(40):
+#             if board.turn == "x":
+#                 if board in stall_whitelist:
+#                     for potential_board in win_whitelist[board]:
+#                         if potential_board in stall_whitelist:
+#                             board = potential_board
+#                 else:
+#                     print("trying to win")
+#                     board = list(win_whitelist[board])[0]
+#             else:
+#                 board = random.choice(list((board.get_neighbor_boards())))
+#             print(board)
+#             if board.is_won() == "o":
+#                 if board in win_blacklist:
+#                     print("bad and I know it")
+#                 else:
+#                     print("bad and im clueless")
+#                 print(wonctr)
+#                 print(tiectr)
+#                 raise Exception("fuck")
+#             elif board.is_won() == "x":
+#                 wonctr += 1
+#                 print("---------------------------------win-----------------------------------")
+#                 break
+#             elif turncount == 39:
+#                 tiectr += 1
+#
+#
+# print(f"woncounter:{wonctr}, tiecounter:{tiectr}")
 
 '''
 Alright, explanation time for when folks read my code because this realization came at 1 AM on a Friday and I have no
