@@ -21,7 +21,7 @@ def get_board_from_result(web_result):
     webtext = json.loads(web_result.text)
     print(webtext)
     if webtext["status"] == "fail":
-        raise Exception("fuck")
+        raise Exception("api returned fail status")
     result = webtext["data"]
     try:
         print(result["hash"])
