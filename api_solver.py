@@ -1,6 +1,6 @@
 import json
 
-from main import Board
+from boardstuff import Board
 from states import stall_whitelist, win_whitelist
 from interface import *
 from copy import copy
@@ -42,4 +42,5 @@ def main():
                 board = get_board_from_result(move(move_to_make[0], move_to_make[1]))
         board = get_board_from_result(next())
 
-main()
+if __name__ == "__main__":
+    main()

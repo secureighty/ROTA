@@ -1,4 +1,4 @@
-from main import Board
+from boardstuff import Board
 import itertools
 from copy import copy
 import random
